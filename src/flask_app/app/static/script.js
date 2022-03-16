@@ -73,7 +73,7 @@ mockQuery();
 function simpleTemplating(data) {
   var html = '<ul>';
   $.each(data, function(index, item){
-      html += '<li>' + "<img style='width:100px' src='./static/testBuffalo.gif'></img>" +  item.Artist + " " + item.Title + '</li>';
+      html += '<li>' + "<img style='width:100px' src="+ item.Thumbnail + "></img>" +  item.Artist + " " + item.Title + '</li>';
   });
   html += '</ul>';
   return html;
