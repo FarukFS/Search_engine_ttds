@@ -37,7 +37,7 @@ function fetchResults(query) {
 
   let data = {"type":"ranked", "query":(query.value)}; 
 
-  fetch("http://localhost:5001/search ", {
+  fetch("http://34.122.121.173:5001/search ", {
     method: "POST",
     headers: {}, 
     body: JSON.stringify(data)
@@ -57,7 +57,7 @@ function mockQuery()
   console.log("mock is ok");
   let data = {"type": "boolean", "query":"love"}; 
 
-  fetch("http://localhost:5001/search ", {
+  fetch("http://34.122.121.173:5001/search ", {
     method: "POST",
     headers: {}, 
     body: JSON.stringify(data)
