@@ -1,0 +1,5 @@
+
+# testing if responses
+curl -i -X POST -H 'Content-Type: application/json' -d '{
+    "type":  "boolean", "query": "steep and water and blue and match"
+}' localhost:5001/search

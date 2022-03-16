@@ -1,0 +1,47 @@
+version: "3.7"
+services:
+
+  mongo_db:
+    container_name: mongo_db
+    image: mongo
+    expose:
+      - "27017"
+    ports:
+      - "27017:27017"
+    networks:
+      text-flask:
+        aliases:
+          - mongo-db
+    volumes:
+      - ./mongo_data/db:/data/db
+
+
+
+  api:
+    build:
+      context: ./flask_app
+      dockerfile: api.dockerfile
+    container_name: api
+    image: api
+    depends_on:
+      - mongo_db
+    expose:
+      - 5001
+    env_file: 
+      - ./flask_app/environment.env      
+    ports:
+      - 5001:5001
+    networks:
+      text-flask:
+        aliases:
+          - back
+
+
+networks:
+  text-flask:
+    name: text-flask
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.238.0/24
+  

@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+   <head>
+	  <link rel="stylesheet" href={{ url_for('static', filename='style.css') }} />
+      <title>Song Search Engine</title>
+	  
+	  
+   </head>	
+   <body>
+    <header>
+      <h1>Search my Song</h1>
+	  <form id ="form" action="javascript:fetchResults(query)">
+      <input type="text" name="query" id="query" placeholder="type the lyrics...">
+	  <button>search</button>
+	  </form>
+	 </header>
+	 
+	<div class="tab">
+		<center>
+		<button class="tablinks" onclick="opentab(event, 'Tab 1')">Tab 1</button>
+		<button class="tablinks" onclick="opentab(event, 'Tab 2')">Tab 2</button>
+		<button class="tablinks" onclick="opentab(event, 'Tab 3')">Tab 3</button>
+		</center>
+	</div>
+
+	<div id="Tab 1" class="tabcontent">
+		<h3>Tab 1</h3>
+		<p>Tab 1 contents.......</p>
+	</div>
+
+	<div id="Tab 2" class="tabcontent">
+		<h3>Tab 2</h3>
+		<p>Tab 2 contents..........</p> 
+	</div>
+
+	<div id="Tab 3" class="tabcontent">
+		<h3>Tab 3</h3>
+		<p>Tab 3 contents............</p>
+	</div>
+
+	<p id="results"></p>
+	
+	
+	
+	
+	<script src = {{ url_for('static', filename='script.js') }}></script>
+	
+   </body>	
+</html>
