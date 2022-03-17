@@ -7,8 +7,6 @@ from flask import request, make_response
 from .utils.ProcessQueryMongoNew import process_query
 
 
-
-
 from logging import getLogger
 logger = getLogger()
 
@@ -26,7 +24,8 @@ class SearchAPI(Resource):
     def post(self):
         payload = request.get_json(force=True)
         type = payload["type"].lower() 
-        query = payload["query"]    
+        query = payload["query"]
+        num_results = payload["num_results"]
         logger.info("[INFO] Executing query")
         
         global col_len, collection, inv_index, ps, STwords, col_nolyrics, terms_index, bm_avg
