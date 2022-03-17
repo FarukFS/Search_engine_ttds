@@ -193,7 +193,7 @@ def ranked_search_bm(query, inv_index, col_len, ps, STwords, bm_index, bm_avg):
     return sorted(scores, key=lambda tup: tup[1], reverse=True)
 
 
-def process_query(query, qtype, col_len, collection, inv_index, bm_index, bm_avg, STwords, ps, num_results=10):
+def process_query(query, qtype, col_len, collection, inv_index, bm_index, bm_avg, STwords, ps, num_results=20):
 
     if qtype == 'boolean':
         results = boolean(inv_index=inv_index, query=query, STwords=STwords, ps=ps)[:num_results]
