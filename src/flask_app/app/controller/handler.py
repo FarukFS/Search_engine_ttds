@@ -25,7 +25,7 @@ class SearchAPI(Resource):
         payload = request.get_json(force=True)
         type = payload["type"].lower() 
         query = payload["query"]
-        num_results = payload["num_results"]
+        # num_results = payload["num_results"]
         logger.info("[INFO] Executing query")
         
         global col_len, collection, inv_index, ps, STwords, col_nolyrics, terms_index, bm_avg

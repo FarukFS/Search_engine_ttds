@@ -51,14 +51,13 @@ def search():
     global ps, conn, STwords, db, inv_index, col_nolyrics,  col_len, terms_index, bm_avg
     type = payload["type"].lower() 
     query = payload["query"]
-    num_results = payload["num_results"]
+    # num_results = payload["num_results"]
     logger.info("[INFO] Executing query")
     try:
         if type =="boolean" or type=="ranked" or type=='ranked_bm':
             
             response = process_query(query=query, qtype=type, col_len=col_len, 
-                        collection=col_nolyrics, inv_index=inv_index, ps=ps, STwords=STwords, bm_avg=bm_avg, bm_index=terms_index,
-                                     num_results=num_results)
+                        collection=col_nolyrics, inv_index=inv_index, ps=ps, STwords=STwords, bm_avg=bm_avg, bm_index=terms_index)
             return make_response(response, 200)
         else:
             response={"body": "query not supported"}
