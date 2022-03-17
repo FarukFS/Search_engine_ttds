@@ -4,7 +4,7 @@ from flask_restful import Resource
 from json import JSONEncoder
 from traceback import print_exc
 from flask import request, make_response
-from .utils.ProcessQueryMongoNew import process_query
+from .utils.ProcessQueryRAM import process_query
 
 
 from logging import getLogger
@@ -34,7 +34,7 @@ class SearchAPI(Resource):
             if type =="boolean" or type=="ranked" or type=='ranked_bm':
                 
                 response = process_query(query=query, qtype=type, col_len=col_len, 
-                            collection=col_nolyrics, inv_index=inv_index, ps=ps, STwords=STwords)
+                            collection=col_nolyrics, inv_index=inv_index, ps=ps, STwords=STwords, bm_index=terms_index, bm_avg=bm_avg)
                 
                 return make_response(response, 200)
             else:
