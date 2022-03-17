@@ -196,18 +196,18 @@ def ranked_search_bm(query, inv_index, col_len, ps, STwords, bm_index, bm_avg):
 def process_query(query, qtype, col_len, collection, inv_index, bm_index, bm_avg, STwords, ps, num_results=100):
 
     if qtype == 'boolean':
-        results = boolean(inv_index=inv_index, query=query, STwords=STwords, ps=ps)
+        results = boolean(inv_index=inv_index, query=query, STwords=STwords, ps=ps)[:num_results]
         songs = [collection[i] for i in results]
         songs = {'Results': [{'Artist': s['Artist'], 'Title': s['SName'], 'Genres':s['Genres'], 'Release':s['Release'],
                               'Thumbnail':s['Thumbnail']} for s in songs]}
     elif qtype == 'ranked':
-        results = ranked_search(query, inv_index=inv_index, col_len=col_len, STwords=STwords, ps=ps)
+        results = ranked_search(query, inv_index=inv_index, col_len=col_len, STwords=STwords, ps=ps)[:num_results]
         songs = [int(res[0]) for res in results]
         songs = [collection[i] for i in songs]
         songs = {'Results': [{'Artist': s['Artist'], 'Title': s['SName'], 'Genres':s['Genres'], 'Release':s['Release'],
                               'Thumbnail':s['Thumbnail']} for s in songs]}
     elif qtype == 'ranked_bm':
-        results = ranked_search_bm(query, inv_index=inv_index, col_len=col_len, bm_index=bm_index, bm_avg=bm_avg, STwords=STwords, ps=ps)
+        results = ranked_search_bm(query, inv_index=inv_index, col_len=col_len, bm_index=bm_index, bm_avg=bm_avg, STwords=STwords, ps=ps)[:num_results]
         print(results)
         songs = [int(res[0]) for res in results]
         songs = [collection[i] for i in songs]
