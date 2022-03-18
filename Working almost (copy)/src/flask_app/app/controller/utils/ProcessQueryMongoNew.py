@@ -33,10 +33,7 @@ def get_word(inv_index, word):
     :param word: a word.
     :return: list of documents containing the word.
     """
-    if word in inv_index.keys():
-        return inv_index[word]
-    else:
-        return []
+    return inv_index.find_one({'Token':word})
 
 
 def proximity_search(inv_index, word1, word2, distance=1):
@@ -48,8 +45,8 @@ def proximity_search(inv_index, word1, word2, distance=1):
     :param distance: the distance between the words.
     :return: list of documents containing the word.
     """
-    a = get_word(inv_index, word1)[1]
-    b = get_word(inv_index, word2)[1]
+    a = get_word(inv_index, word1)['Documents']
+    b = get_word(inv_index, word2)['Documents']
     # Documents that contain both word a and word b.
     match = a.keys() & b.keys()
     newdict = {k: (a[k], b[k]) for k in match}
@@ -82,7 +79,7 @@ def boolean(inv_index, query, ps, STwords):
     i = -1
 
     if " ".join(query).find(" ") == -1:
-        tmp = get_word(inv_index,query[0])[1].keys()
+        tmp = get_word(inv_index, query[0])['Documents'].keys()
         return list(map(int, tmp))
 
     for word in query:
@@ -104,8 +101,8 @@ def boolean(inv_index, query, ps, STwords):
 
         if operator:
             if len(words) == 2:
-                result = set(get_word(inv_index, words[i - 1])[1].keys())
-            temp = set(get_word(inv_index, words[i])[1].keys())
+                result = set(get_word(inv_index, words[i - 1])['Documents'].keys())
+            temp = set(get_word(inv_index, words[i])['Documents'].keys())
 
             if operator == 'and':
                 if not_flag == True:
@@ -133,16 +130,16 @@ def ranked_search(query, inv_index, col_len, ps, STwords):
     :return: sorted list of tuples containing the score for each document in the format (doc, score).
     """
 
-    queries = re.findall(r'\w+', query)
-    queries = [ps.stem(word) for word in queries if ps.stem(word.lower()) not in STwords]
+    queries = re.findall(r'\w+', query.lower())
+    queries = [ps.stem(word) for word in queries if ps.stem(word) not in STwords]
 
     query_index = {}
     tfidf_index = defaultdict(dict)
 
     for word in queries:
         query_index[word] = 1 + math.log(queries.count(word), 10)
-        docs = get_word(inv_index, word)[1]
-        freq = get_word(inv_index, word)[0]
+        docs = get_word(inv_index, word)['Documents']
+        freq = get_word(inv_index, word)['Frequency']
         for doc in docs.keys():
             tfidf_index[doc][word] = (1 + math.log(len(docs[doc]), 10)) * (math.log((col_len / freq), 10))
 
@@ -158,59 +155,17 @@ def ranked_search(query, inv_index, col_len, ps, STwords):
     return sorted(scores, key=lambda tup: tup[1], reverse=True)
 
 
-def ranked_search_bm(query, inv_index, col_len, ps, STwords, bm_index, bm_avg):
-    """
-    Given a ranked query, perform a ranked search.
-    :param query: a query.
-    :param inv_index: the inverted index.
-    :param docs: a list containing all of the document IDs.
-    :return: sorted list of tuples containing the score for each document in the format (doc, score).
-    """
-
-    queries = re.findall(r'\w+', query)
-    queries = [ps.stem(word) for word in queries if ps.stem(word.lower()) not in STwords]
-
-    query_index = {}
-    tfidf_index = defaultdict(dict)
-
-    for word in queries:
-        query_index[word] = 1
-        docs = get_word(inv_index, word)[1]
-        freq = get_word(inv_index, word)[0]
-        for doc in docs.keys():
-            tfidf_index[doc][word] = (len(docs[doc])*(1.5+1)/(len(docs[doc]) + 1.5*(1-0.1+0.1*bm_index[doc]/bm_avg))) * \
-            (math.log(((col_len-freq+0.5)/(freq+0.5)), 10))
-
-    scores = []
-    for key in tfidf_index.keys():
-        score = 0
-        for word in queries:
-            if tfidf_index.get(key, {}).get(word) is not None:
-                score += query_index[word] * (tfidf_index[key][word])
-        if score > 0:
-            scores.append((key, score))
-
-    return sorted(scores, key=lambda tup: tup[1], reverse=True)
-
-
-def process_query(query, qtype, col_len, collection, inv_index, bm_index, bm_avg, STwords, ps, num_results=20):
-
+def process_query(query, qtype, col_len, collection, inv_index, ps, STwords):
     if qtype == 'boolean':
-        results = boolean(inv_index=inv_index, query=query, STwords=STwords, ps=ps)[:num_results]
-        songs = [collection[i] for i in results]
+        results = boolean(inv_index=inv_index, query=query, ps=ps, STwords=STwords)[:10]
+        songs = [collection.find_one({'ID':i}) for i in results]
         songs = {'Results': [{'Artist': s['Artist'], 'Title': s['SName'], 'Genres':s['Genres'], 'Release':s['Release'],
                               'Thumbnail':s['Thumbnail']} for s in songs]}
     elif qtype == 'ranked':
-        results = ranked_search(query, inv_index=inv_index, col_len=col_len, STwords=STwords, ps=ps)[:num_results]
+        results = ranked_search(query, inv_index=inv_index, col_len=col_len, ps=ps, STwords=STwords)[:10]
         songs = [int(res[0]) for res in results]
-        songs = [collection[i] for i in songs]
-        songs = {'Results': [{'Artist': s['Artist'], 'Title': s['SName'], 'Genres':s['Genres'], 'Release':s['Release'],
-                              'Thumbnail':s['Thumbnail']} for s in songs]}
-    elif qtype == 'ranked_bm':
-        results = ranked_search_bm(query, inv_index=inv_index, col_len=col_len, bm_index=bm_index, bm_avg=bm_avg, STwords=STwords, ps=ps)[:num_results]
-        print(results)
-        songs = [int(res[0]) for res in results]
-        songs = [collection[i] for i in songs]
+        songs = [collection.find_one({'ID':i}) for i in songs[:10]]
+#         songs = collection.find({'ID': {"$in": songs}})
         songs = {'Results': [{'Artist': s['Artist'], 'Title': s['SName'], 'Genres':s['Genres'], 'Release':s['Release'],
                               'Thumbnail':s['Thumbnail']} for s in songs]}
 
