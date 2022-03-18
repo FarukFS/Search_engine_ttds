@@ -39,7 +39,7 @@ def load_global_data():
     with open('./controller/static/collection_nolyrics.pickle', 'rb') as handle:
         col_nolyrics = pickle.load(handle)
     col_len = collection.count_documents({})
-    docs = set(range(len(col_len)))
+    docs = set(range((col_len)))
 
 
 @flask_app.route("/")
