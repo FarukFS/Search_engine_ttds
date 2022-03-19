@@ -3,7 +3,7 @@ from traceback import print_exc
 from flask_cors import CORS
 from controller.utils.mogo_utils import get_mongo_conn
 # from controller.utils.ProcessQueryRAM import process_query, get_lyrics
-from controller.utils.ProcessQueryWithPhrase import process_query, get_lyrics
+from controller.utils.ProcessQueryWithPhrase import process_query, get_lyrics, get_video
 from nltk.stem import PorterStemmer
 from os import environ
 from logging import getLogger
@@ -95,7 +95,7 @@ def get_song():
     logger.info("[INFO] Executing query")
     global api_object
     try:
-        response = get_song(payload, api_object)
+        response = get_video(payload, api_object)
         return make_response(response, 200)
 
     except Exception as e:
