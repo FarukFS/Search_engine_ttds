@@ -27,14 +27,14 @@ def get_mongo_conn(host='127.0.0.1', port=27017):
 # ps = PorterStemmer()
 
 
-def get_word(inv_index, word):
+def get_word(inv_index, word, ps, STwords):
     if word in inv_index.keys():
         try:
             return set(inv_index[word][1].keys())
         except IndexError:
             return set()
     elif word[0] == "\"" and word[-1] == "\"":
-        return handleQuotes(inv_index, word[1:-1])
+        return handleQuotes(inv_index, word[1:-1], ps=ps, STwords=STwords)
     #         quotes
     elif word[0] == "#" and word[-1] == ")":
         return proximity_search(inv_index, word)
@@ -42,14 +42,14 @@ def get_word(inv_index, word):
         return set()
 
 
-def get_word_ranked(inv_index, word):
+def get_word_ranked(inv_index, word, ps, STwords):
     if word in inv_index.keys():
         try:
             return inv_index[word]
         except IndexError:
             return set()
     elif word[0] == "\"" and word[-1] == "\"":
-        return handleQuotes(inv_index, word[1:-1])
+        return handleQuotes(inv_index, word[1:-1], ps=ps, STwords=STwords)
     #         quotes
     elif word[0] == "#" and word[-1] == ")":
         return proximity_search(inv_index, word)
@@ -72,7 +72,7 @@ def handleQuotes(inv_index, quote, ps, STwords):
     quote = quote.split(" ")
     quoteParts = [ps.stem(w) for w in quote if w not in STwords]
     if len(quoteParts) == 1:
-        return get_word(inv_index, quoteParts[0])
+        return get_word(inv_index, quoteParts[0], ps=ps, STwords=STwords)
 
     results = None
     for word in quoteParts:
@@ -150,9 +150,9 @@ def boolean(inv_index, query, ps, STwords, docs):
         return set()
     elif len(queryParts) == 1:
         if queryParts[0][:3] == "not":
-            return docs - get_word(inv_index, queryParts[0])
+            return docs - get_word(inv_index, queryParts[0], ps=ps, STwords=STwords)
         else:
-            return get_word(inv_index, queryParts[0])
+            return get_word(inv_index, queryParts[0], ps=ps, STwords=STwords)
 
     for part in queryParts:
         not_flag = False
@@ -175,13 +175,13 @@ def boolean(inv_index, query, ps, STwords, docs):
         if operator:
             if len(result) == 0:
                 #                 we build results first
-                w1Result = get_word(inv_index, words[i - 1])
+                w1Result = get_word(inv_index, words[i - 1], ps=ps, STwords=STwords)
                 # second word results
 
                 if i - 1 in haveNot:
                     w1Result = docs - w1Result
 
-                w2Result = get_word(inv_index, words[i])
+                w2Result = get_word(inv_index, words[i], ps=ps, STwords=STwords)
 
                 if i in haveNot:
                     w2Result = docs - w2Result
@@ -193,7 +193,7 @@ def boolean(inv_index, query, ps, STwords, docs):
             else:
                 print(i)
                 # we already have old results - we append
-                newResults = get_word(inv_index, words[i])
+                newResults = get_word(inv_index, words[i], ps=ps, STwords=STwords)
 
                 if i in haveNot:
                     newResults = docs - newResults
@@ -225,12 +225,12 @@ def ranked_search(query, inv_index, col_len, ps, STwords, bm_index, bm_avg):
     for word in queries:
         query_index[word] = 1
         try:
-            docs = get_word_ranked(inv_index, word)[1].keys()
-            freq = get_word_ranked(inv_index, word)[0]
+            docs = get_word_ranked(inv_index, word, ps=ps, STwords=STwords)[1].keys()
+            freq = get_word_ranked(inv_index, word, ps=ps, STwords=STwords)[0]
         except (IndexError, TypeError):
-            docs = get_word_ranked(inv_index, word)
+            docs = get_word_ranked(inv_index, word, ps=ps, STwords=STwords)
             print(docs)
-            freq = len(get_word_ranked(inv_index, word))
+            freq = len(get_word_ranked(inv_index, word, ps=ps, STwords=STwords))
 
         for doc in docs:
             tfidf_index[doc][word] = (1 * (1.5 + 1) / (1 + 1.5 * (1 - 0.1 + 0.1 * bm_index[doc] / bm_avg))) * \
