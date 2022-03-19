@@ -147,12 +147,12 @@ def boolean(inv_index, query, ps, STwords, docs):
     i = -1
 
     if len(queryParts) == 0:
-        return set()
+        return []
     elif len(queryParts) == 1:
         if queryParts[0][:3] == "not":
-            return docs - get_word(inv_index, queryParts[0], ps=ps, STwords=STwords)
+            return sorted(docs - get_word(inv_index, queryParts[0], ps=ps, STwords=STwords))
         else:
-            return get_word(inv_index, queryParts[0], ps=ps, STwords=STwords)
+            return sorted(get_word(inv_index, queryParts[0], ps=ps, STwords=STwords))
 
     for part in queryParts:
         not_flag = False
@@ -191,7 +191,6 @@ def boolean(inv_index, query, ps, STwords, docs):
                 elif operator == "or":
                     result = w1Result | w2Result
             else:
-                print(i)
                 # we already have old results - we append
                 newResults = get_word(inv_index, words[i], ps=ps, STwords=STwords)
 
