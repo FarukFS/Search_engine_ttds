@@ -10,6 +10,7 @@ from logging import getLogger
 import json
 import pandas as pd
 import pickle
+from apiclient.discovery import build
 
 logger = getLogger()
 
@@ -18,7 +19,7 @@ CORS(flask_app,allow_headers='content_type',origins='*')
 
 @flask_app.before_first_request
 def load_global_data():
-    global ps, conn, STwords, db, inv_index, collection,  col_len, col_nolyrics, terms_index, bm_avg, docs
+    global ps, conn, STwords, db, inv_index, collection,  col_len, col_nolyrics, terms_index, bm_avg, docs, api_object
         #init stemmer
     ps = PorterStemmer()
     #load stopwords
@@ -40,6 +41,7 @@ def load_global_data():
         col_nolyrics = pickle.load(handle)
     col_len = collection.count_documents({})
     docs = set(range((col_len)))
+    api_object = build('youtube', 'v3', developerKey='AIzaSyACy9B-4tLJtoudsIiz--r_kzA9_j6UI0U')
 
 
 @flask_app.route("/")
@@ -85,4 +87,18 @@ def lyrics():
     except Exception as e:
         print_exc()
         response = {'error':str(e)}
+        return make_response(response, 400)
+
+@flask_app.route("/get_song", methods=["POST"])
+def get_song():
+    payload = request.get_json(force=True)
+    logger.info("[INFO] Executing query")
+    global api_object
+    try:
+        response = get_song(payload, api_object)
+        return make_response(response, 200)
+
+    except Exception as e:
+        print_exc()
+        response = {'error': str(e)}
         return make_response(response, 400)

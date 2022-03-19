@@ -233,7 +233,11 @@ def ranked_search(query, inv_index, col_len, ps, STwords, bm_index, bm_avg):
             freq = len(get_word_ranked(inv_index, word, ps=ps, STwords=STwords))
 
         for doc in docs:
-            tfidf_index[doc][word] = (1 * (1.5 + 1) / (1 + 1.5 * (1 - 0.1 + 0.1 * bm_index[doc] / bm_avg))) * \
+            try:
+                doc_len = len(docs[doc])
+            except TypeError:
+                doc_len = 1
+            tfidf_index[doc][word] = (doc_len * (1.5 + 1) / (doc_len + 1.5 * (1 - 0.1 + 0.1 * bm_index[doc] / bm_avg))) * \
                                      (math.log(((col_len - freq + 0.5) / (freq + 0.5)), 10))
 
     scores = []
@@ -286,3 +290,10 @@ def process_query(query, qtype, col_len, collection, inv_index, bm_index, bm_avg
 def get_lyrics(dic, collection):
     lyrics = collection.find_one({'Artist': dic['Artist'], 'SName': dic['Title']})
     return {'Lyrics': lyrics['Lyric']}
+
+
+def get_video(dic, api_object):
+    req = api_object.search().list(q=dic['Title']+ " " + dic['Artist'], part='snippet', type='video')
+    res = req.execute()
+    url = 'https://www.youtube.com/watch?v=' + res['items'][0]['id']['videoId']
+    return url
