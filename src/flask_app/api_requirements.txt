@@ -9,3 +9,5 @@ pytz==2019.3
 requests==2.21.0
 gunicorn==20.0.4
 nltk
+RUN pip install --upgrade google-api-python-client
+RUN pip install --upgrade google-auth-oauthlib google-auth-httplib2
