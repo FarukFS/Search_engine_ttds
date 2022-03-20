@@ -10,7 +10,6 @@ from logging import getLogger
 import json
 import pandas as pd
 import pickle
-from apiclient.discovery import build
 
 logger = getLogger()
 
@@ -41,7 +40,6 @@ def load_global_data():
         col_nolyrics = pickle.load(handle)
     col_len = collection.count_documents({})
     docs = set(range((col_len)))
-    api_object = build('youtube', 'v3', developerKey='AIzaSyACy9B-4tLJtoudsIiz--r_kzA9_j6UI0U')
 
 
 @flask_app.route("/")
@@ -93,9 +91,8 @@ def lyrics():
 def get_song():
     payload = request.get_json(force=True)
     logger.info("[INFO] Executing query")
-    global api_object
     try:
-        response = get_video(payload, api_object)
+        response = get_video(payload)
         return make_response(response, 200)
 
     except Exception as e:
