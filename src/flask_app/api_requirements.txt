@@ -10,3 +10,4 @@ requests==2.21.0
 gunicorn==20.0.4
 nltk
 google-api-python-client
+beautifulsoup4
