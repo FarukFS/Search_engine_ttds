@@ -228,7 +228,6 @@ def ranked_search(query, inv_index, col_len, ps, STwords, bm_index, bm_avg):
             freq = get_word_ranked(inv_index, word, ps=ps, STwords=STwords)[0]
         except (IndexError, TypeError):
             docs = get_word_ranked(inv_index, word, ps=ps, STwords=STwords)
-            print(docs)
             freq = len(get_word_ranked(inv_index, word, ps=ps, STwords=STwords))
 
         for doc in docs:
@@ -295,4 +294,4 @@ def get_video(dic, api_object):
     req = api_object.search().list(q=dic['Title']+ " " + dic['Artist'], part='snippet', type='video')
     res = req.execute()
     url = 'https://www.youtube.com/watch?v=' + res['items'][0]['id']['videoId']
-    return url
+    return {'Url':url}
