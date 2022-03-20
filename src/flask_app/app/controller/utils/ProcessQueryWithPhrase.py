@@ -7,6 +7,8 @@ import json
 import time
 import shlex
 from pymongo import MongoClient
+import requests
+from bs4 import BeautifulSoup
 
 
 def get_mongo_conn(host='127.0.0.1', port=27017):
@@ -290,8 +292,8 @@ def get_lyrics(dic, collection):
     return {'Lyrics': lyrics['Lyric']}
 
 
-def get_video(dic, api_object):
-    req = api_object.search().list(q=dic['Title']+ " " + dic['Artist'], part='snippet', type='video')
-    res = req.execute()
-    url = 'https://www.youtube.com/watch?v=' + res['items'][0]['id']['videoId']
+def get_video(dic):
+    query = dic['Title']+" " + dic['Artist']
+    page = requests.get(f'https://www.youtube.com/results?search_query='+query)
+    url = 'https://www.youtube.com/watch?v=' + re.search(r'"videoId":"(.+?)"', page.text).group(1)
     return {'Url':url}
