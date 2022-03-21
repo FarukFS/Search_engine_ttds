@@ -295,5 +295,5 @@ def get_lyrics(dic, collection):
 def get_video(dic):
     query = dic['Title']+" " + dic['Artist']
     page = requests.get(f'https://www.youtube.com/results?search_query='+query)
-    url = 'https://www.youtube.com/watch?v=' + re.search(r'"videoId":"(.+?)"', page.text).group(1)
+    url = 'https://www.youtube.com/embed/' + re.search(r'"videoId":"(.+?)"', page.text).group(1)
     return {'Url':url}
