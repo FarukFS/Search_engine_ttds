@@ -92,7 +92,7 @@ def upload_index(index, connection):
 
 
 # connection = get_mongo_conn()
-inv_index_orig = create_invindex('dataset.csv')
+# inv_index_orig = create_invindex('dataset.csv')
 # upload_index('index.json', connection)
 
 
@@ -233,7 +233,7 @@ def upload_index(index, connection):
         # print("key", key, val)
         testeo = {"Token": key, 'Frequency': val[0], 'Documents': val[1]}
         inv_index.insert_one(testeo)    
-    
+
 
 
 
