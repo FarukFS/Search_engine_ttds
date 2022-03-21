@@ -27,7 +27,7 @@ def get_word(inv_index, word, ps, STwords):
         return handleQuotes(inv_index, word[1:-1], ps=ps, STwords=STwords)
     #         quotes
     elif word[0] == "#" and word[-1] == ")":
-        return proximity_search(inv_index, word)
+        return proximity_search(inv_index, word, ps=ps, STwords=STwords)
     else:
         return set()
 
@@ -42,7 +42,7 @@ def get_word_ranked(inv_index, word, ps, STwords):
         return handleQuotes(inv_index, word[1:-1], ps=ps, STwords=STwords)
     #         quotes
     elif word[0] == "#" and word[-1] == ")":
-        return proximity_search(inv_index, word)
+        return proximity_search(inv_index, word, ps=ps, STwords=STwords)
     else:
         return set()
 
