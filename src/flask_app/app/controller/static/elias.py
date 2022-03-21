@@ -180,8 +180,7 @@ def decode(encoding):
                         values += [0]
                     binNum = binNum[1:]
         # currently outputting a single doc and it's values.
-        return "docid", key ," pos", values
-#     return key, values
+    return key, values
 
 def createEliasIndex(inv_index_orig):
     newIndex = {}
