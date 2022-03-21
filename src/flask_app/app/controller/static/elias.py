@@ -13,6 +13,7 @@ import pandas as pd
 import json
 from os import environ
 from pymongo import MongoClient
+import pickle
 
 
 
@@ -42,7 +43,6 @@ def create_invindex(file_csv):
     # Parse XML file and initialize data structures.
     inv_index = defaultdict(list)
     df = pd.read_csv(file_csv)
-    print(df)
     df = df.dropna(subset=['Lyric'])
     lyrics_list = df['Lyric'].tolist()
 
@@ -72,11 +72,7 @@ def create_invindex(file_csv):
 
             # Calculate document frequency of word.
             inv_index[word][0] = len(inv_index[word][1].keys())
-    print(inv_index)
     return inv_index
-
-    # with open('index.json', 'w+') as f:
-    #     json.dump(inv_index, f)
 
 
 def upload_index(index, connection):
@@ -94,9 +90,6 @@ def upload_index(index, connection):
 # connection = get_mongo_conn()
 # inv_index_orig = create_invindex('dataset.csv')
 # upload_index('index.json', connection)
-
-
-
 
 # takes list of numbers and transforms them into a list of ints - note that the docID is the first int in nums
 def encodeNums(nums):
@@ -148,8 +141,6 @@ def decode(encoding):
 #     print("encoding", encoding)
     # nDocs = encoding[0]
     for item in encoding[1][0:]:
-        print("doc", item)
-
 #         print(doc[0])
 #         for item in doc[0]:
         # print(decode2(doc))
@@ -192,13 +183,8 @@ def decode(encoding):
         return "docid", key ," pos", values
 #     return key, values
 
-    
-
-
-
 def createEliasIndex(inv_index_orig):
     newIndex = {}
-    print(inv_index_orig)
     for kp in inv_index_orig.items():
         #print("kp", kp)
         key = kp[0]
@@ -217,22 +203,9 @@ def createEliasIndex(inv_index_orig):
             encodedDocs += [encodeNums([docOffset] + doc[1])]
         # replace with encoded. e.g. "fire"
         newIndex[key] = [body[0], encodedDocs]
-    with open('elias.json', 'w+') as f:
-        json.dump(newIndex, f)
+    with open('elias.pickle', 'wb') as handle:
+        pickle.dump(newIndex, handle, protocol=pickle.HIGHEST_PROTOCOL)
     return newIndex
-    
-    
-def upload_index(index, connection):
-    with open(index, 'r') as f:
-        i_index = json.load(f)
-
-    db = connection["indexes"]
-    inv_index = db["inv_index"]
-
-    for key, val in i_index.items():
-        # print("key", key, val)
-        testeo = {"Token": key, 'Frequency': val[0], 'Documents': val[1]}
-        inv_index.insert_one(testeo)    
 
 
 
