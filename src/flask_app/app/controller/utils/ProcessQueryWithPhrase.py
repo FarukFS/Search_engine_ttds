@@ -17,18 +17,6 @@ def get_mongo_conn(host='127.0.0.1', port=27017):
     return mongo_conn
 
 
-# connection = get_mongo_conn()
-# db = connection["indexes"]
-# inv_index = db["inv_index"]
-# collection = db["collection"]
-#
-# col_len = collection.count_documents({})
-
-# f = open('englishST.txt', "r", encoding="utf-8-sig")
-# STwords = [word.rstrip() for word in f.readlines()]
-# ps = PorterStemmer()
-
-
 def get_word(inv_index, word, ps, STwords):
     if word in inv_index.keys():
         try:
@@ -65,8 +53,7 @@ def get_word_docs(inv_index, word):
         try:
             return inv_index[word][1]
         except IndexError:
-            return set()
-    return set()
+            return {}
 
 
 def handleQuotes(inv_index, quote, ps, STwords):
@@ -252,7 +239,7 @@ def ranked_search(query, inv_index, col_len, ps, STwords, bm_index, bm_avg):
     return sorted(scores, key=lambda tup: tup[1], reverse=True)
 
 
-def process_query(query, qtype, col_len, collection, inv_index, bm_index, bm_avg, STwords, ps, docs, num_results=20):
+def process_query(query, qtype, col_len, collection, inv_index, bm_index, bm_avg, STwords, ps, docs, num_results=27):
 
     if qtype == 'boolean':
         results = boolean(inv_index=inv_index, query=query, STwords=STwords, ps=ps, docs=docs)
