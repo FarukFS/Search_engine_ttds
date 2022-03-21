@@ -95,13 +95,13 @@ def handleQuotes(inv_index, quote, ps, STwords):
 
 
 def proximity_search(inv_index, query, ps, STwords):
-    query = re.findall(r'#\((\w+),(\w+)(?:,(\d+))?', query)
+    query = re.findall(r'#\((\w+),(\w+)(?:,(\d+))?', query)[0]
     query = list(filter(None, query))
     query = [ps.stem(w) for w in query if w not in STwords]
-    a = get_word_docs(inv_index, query[0][0])
-    b = get_word_docs(inv_index, query[0][1])
+    a = get_word_docs(inv_index, query[0])
+    b = get_word_docs(inv_index, query[1])
     try:
-        distance = int(query[0][2])
+        distance = int(query[2])
     except (IndexError, ValueError):
         distance = 1
 
