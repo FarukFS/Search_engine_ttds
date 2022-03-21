@@ -95,8 +95,7 @@ def handleQuotes(inv_index, quote, ps, STwords):
 
 
 def proximity_search(inv_index, query, ps, STwords):
-    print(query)
-    query = re.findall(r'#\((\w+),(\w+)(?:,(\d+))?', query.lower())
+    query = re.findall(r'#\((\w+),(\w+)(?:,(\d+))?', query)
     query = list(filter(None, query))
     query = [ps.stem(w) for w in query if w not in STwords]
     a = get_word_docs(inv_index, query[0][0])
