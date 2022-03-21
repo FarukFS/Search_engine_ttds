@@ -234,11 +234,6 @@ def upload_index(index, connection):
         testeo = {"Token": key, 'Frequency': val[0], 'Documents': val[1]}
         inv_index.insert_one(testeo)    
     
-    
-connection = get_mongo_conn()
-eliasIndex = createEliasIndex(inv_index_orig)
-print(eliasIndex)
-upload_index("./elias.json", connection)
 
 
 
