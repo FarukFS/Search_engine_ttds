@@ -11,6 +11,58 @@ import requests
 from bs4 import BeautifulSoup
 
 
+def decode(encoding):
+    # ans = {}
+    #     print(encoding[:10])
+    #     print("encoding", encoding)
+    # nDocs = encoding[0]
+    decodedDict = {}
+    for item in encoding:
+        print("doc", item)
+
+        #         print(doc[0])
+        #         for item in doc[0]:
+        # print(decode2(doc))
+        # item = item
+        key = -1
+        values = []
+        print(item)
+        for encodedPart in item:
+            # print("encodedPart", encodedPart)
+            #         print(bin(encodedPart))
+            binNum = str(bin(encodedPart))[2:]
+
+            while len(binNum) > 0:
+                # y1+z1 = original first number
+                try:
+                    first0 = binNum.index("0")
+
+                    y1 = binNum[:first0]
+                    y1 = 2 ** len(y1)
+                    z1 = binNum[first0:2 * first0 + 1]
+
+                    val = y1 + int(z1, 2) - 1
+                    if key == -1:
+                        key = val
+                    else:
+                        values += [val]
+
+                    binNum = binNum[2 * first0 + 1:]
+
+                except ValueError:
+                    #                 because we +1 zero index, need to plus one again
+                    #                 no 0's - only 1
+                    if key == -1:
+                        key = 0
+                    else:
+                        values += [0]
+                    binNum = binNum[1:]
+        # currently outputting a single doc and it's values.
+        decodedDict[key] = values
+        # return "docid", key ," pos", values
+    return decodedDict
+
+
 def get_mongo_conn(host='127.0.0.1', port=27017):
     # Create connection
     mongo_conn = MongoClient(host, port)

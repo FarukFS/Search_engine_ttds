@@ -3,27 +3,55 @@ import re
 from collections import defaultdict
 import math
 import pandas as pd
-import json
-import math
-from nltk.stem import PorterStemmer
-import re
-from collections import defaultdict
-import math
-import pandas as pd
-import json
-from os import environ
 from pymongo import MongoClient
 import pickle
-
-
-
-# from pymongo import MongoClient
 
 
 def get_mongo_conn(host='127.0.0.1', port=27017):
     # Create connection
     mongo_conn = MongoClient(host, port)
     return mongo_conn
+
+
+# takes list of numbers and transforms them into a list of ints - note that the docID is the first int in nums
+def encodeNums(nums):
+    #     print(nums)
+    # return encoding of a list of nums
+    def encode(num):
+        #         num += 1
+        def power_two(n):
+            return int(math.log(n, 2))
+
+        # y = math.pow(2, power_two(num))
+        def gamma(num):
+            num = num + 1
+            #             num = num
+            if num == 1:
+                return str(format(1, 'b'))
+            #             num += 1
+            #             if num == 0:
+            #                 return "1"
+            s = ""
+            s += "1" * power_two(num) + "0"
+            s += str(format(num - 2 ** power_two(num), 'b')).zfill((power_two(num)))
+            return s
+
+        return gamma(num)
+
+    encoding = []
+    for num in nums:
+        encodedNum = encode(num)
+        if encoding == []:
+            encoding += [encodedNum]
+        else:
+            lastNum = encoding[-1]
+            # bigger than max bit size allowed, we need to use another element to represent.
+            if len(lastNum) + len(encodedNum) >= 32:
+                encoding += [encodedNum]
+            else:
+                encoding[-1] = encoding[-1] + (encodedNum)
+    #     print("encoding" , encoding)
+    return list(map(lambda x: int(x, 2), encoding))
 
 
 # "amstwom": [2, {"197936": [69], "197961": [67]}],
@@ -42,15 +70,21 @@ def create_invindex(file_csv):
 
     # Parse XML file and initialize data structures.
     inv_index = defaultdict(list)
+    terms_index = {}
+    bm_avg = 0
+
     df = pd.read_csv(file_csv)
     df = df.dropna(subset=['Lyric'])
     lyrics_list = df['Lyric'].tolist()
+    del df
 
     # Iterate through all of the documents in the collection
     for idx, lyric in enumerate(lyrics_list):
+        print("*" * 5, idx)
         # Combine headline + text, tokenize it, remove the stopwords and stem each token.
         tks = re.findall(r'\w+', lyric)
         tks = [ps.stem(word) for word in tks if word.lower() not in STwords]
+        bm_avg += len(tks)
         # Iterate through each token and append to inverted index.
         for pos, word in enumerate(tks):
             # Check if the word is already on the inv_index
@@ -72,120 +106,13 @@ def create_invindex(file_csv):
 
             # Calculate document frequency of word.
             inv_index[word][0] = len(inv_index[word][1].keys())
-    return inv_index
 
+        terms_index[idx] = len(tks)
 
-def upload_index(index, connection):
-    with open(index, 'r') as f:
-        i_index = json.load(f)
+    bm_avg = bm_avg / len(inv_index)
 
-    db = connection["indexes"]
-    inv_index = db["inv_index"]
-
-    for key, val in i_index.items():
-        testeo = {"Token": key, 'Frequency': val[0], 'Documents': val[1]}
-        inv_index.insert_one(testeo)
-
-
-# connection = get_mongo_conn()
-# inv_index_orig = create_invindex('dataset.csv')
-# upload_index('index.json', connection)
-
-# takes list of numbers and transforms them into a list of ints - note that the docID is the first int in nums
-def encodeNums(nums):
-#     print(nums)
-    # return encoding of a list of nums
-    def encode(num):
-#         num += 1
-        def power_two(n):
-            return int(math.log(n, 2))
-
-        # y = math.pow(2, power_two(num))
-        def gamma(num):
-            num = num + 1
-#             num = num
-            if num == 1:
-                return str(format(1 , 'b'))
-#             num += 1
-#             if num == 0:
-#                 return "1"
-            s = ""
-            s += "1" *power_two(num) + "0"
-            s += str(format(num- 2**power_two(num), 'b')).zfill((power_two(num)))
-            return s
-        return gamma(num)
-    encoding = []
-    for num in nums:
-        encodedNum = encode(num)
-        if encoding == []:
-            encoding += [encodedNum]
-        else:
-            lastNum = encoding[-1]
-            # bigger than max bit size allowed, we need to use another element to represent.
-            if len(lastNum) + len(encodedNum) >= 32:
-                encoding += [encodedNum]
-            else:
-                encoding[-1] = encoding[-1] + (encodedNum)
-#     print("encoding" , encoding)
-    return list(map(lambda x: int(x, 2), encoding))
-
-
-
-
-
-# spits out x... from encodeNums([x...])]) - Of form [numInDoc, [positions]]
-# encoding is the entire index for a given word, e.g. "feel" has [[encodedDoc1], [EncodedDoc2]...]
-def decode(encoding):
-    # ans = {}
-#     print(encoding[:10])
-#     print("encoding", encoding)
-    # nDocs = encoding[0]
-    for item in encoding[1][0:]:
-#         print(doc[0])
-#         for item in doc[0]:
-        # print(decode2(doc))
-        # item = item
-        key = -1
-        values = []
-        print(item)
-        for encodedPart in item:
-            # print("encodedPart", encodedPart)
-    #         print(bin(encodedPart))
-            binNum = str(bin(encodedPart))[2:]
-            
-            while len(binNum) > 0:
-            # y1+z1 = original first number
-                try:
-                    first0 = binNum.index("0")
-                    
-                    y1 = binNum[:first0]
-                    y1 = 2** len(y1)
-                    z1 = binNum[first0:2 * first0+1]
-                    
-                    val = y1+int(z1, 2) - 1
-                    if key == -1:
-                        key = val
-                    else:
-                        values += [val]
-
-
-                    binNum = binNum[2*first0+1:]
-                    
-                except ValueError:
-    #                 because we +1 zero index, need to plus one again
-    #                 no 0's - only 1
-                    if key == -1:
-                        key = 0
-                    else:
-                        values += [0]
-                    binNum = binNum[1:]
-        # currently outputting a single doc and it's values.
-    return key, values
-
-def createEliasIndex(inv_index_orig):
-    newIndex = {}
-    for kp in inv_index_orig.items():
-        #print("kp", kp)
+    for kp in inv_index.items():
+        # print("kp", kp)
         key = kp[0]
         body = kp[1]
         encodedDocs = []
@@ -193,7 +120,7 @@ def createEliasIndex(inv_index_orig):
         docOffset = -1
         lastDocID = -1
         for doc in body[1].items():
-    #         set first docID, then rest are related to it
+            #         set first docID, then rest are related to it
             if docOffset == -1:
                 docOffset = int(doc[0])
             else:
@@ -201,12 +128,13 @@ def createEliasIndex(inv_index_orig):
             lastDocID = int(doc[0])
             encodedDocs += [encodeNums([docOffset] + doc[1])]
         # replace with encoded. e.g. "fire"
-        newIndex[key] = [body[0], encodedDocs]
-    with open('elias.pickle', 'wb') as handle:
-        pickle.dump(newIndex, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    return newIndex
+        inv_index[key] = [body[0], encodedDocs]
 
+    with open('index_elias.pickle', 'wb') as handle:
+        pickle.dump(inv_index, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+    with open('terms_index.pickle', 'wb') as handle:
+        pickle.dump(terms_index, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-
-
+    with open('bm_avg.pickle', 'wb') as handle:
+        pickle.dump(bm_avg, handle, protocol=pickle.HIGHEST_PROTOCOL)
