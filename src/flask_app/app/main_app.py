@@ -3,7 +3,7 @@ from traceback import print_exc
 from flask_cors import CORS
 from controller.utils.mogo_utils import get_mongo_conn
 # from controller.utils.ProcessQueryRAM import process_query, get_lyrics
-from controller.utils.ProcessQueryWithPhrase import process_query, get_lyrics, get_video
+from controller.utils.ProcessQueryWithPhraseElias import process_query, get_lyrics, get_video
 from nltk.stem import PorterStemmer
 from os import environ
 from logging import getLogger
@@ -16,30 +16,31 @@ logger = getLogger()
 flask_app = Flask(__name__)
 CORS(flask_app,allow_headers='content_type',origins='*')
 
-@flask_app.before_first_request
-def load_global_data():
-    global ps, conn, STwords, db, inv_index, collection,  col_len, col_nolyrics, terms_index, bm_avg, docs, api_object
-        #init stemmer
-    ps = PorterStemmer()
-    #load stopwords
-    f = open('./controller/static/englishST.txt', "r", encoding="utf-8-sig")
-    STwords = [word.rstrip() for word in f.readlines()]
-    #mongo conn
-    conn = get_mongo_conn(host=environ["MONGO_HOST"], port=int(environ["MONGO_PORT"]))
-    db = conn["indexes"]
+# @flask_app.before_first_request
+# def load_global_data():
+# global ps, conn, STwords, db, inv_index, collection,  col_len, col_nolyrics, terms_index, bm_avg, docs, api_object
+    #init stemmer
+ps = PorterStemmer()
+#load stopwords
+f = open('./controller/static/englishST.txt', "r", encoding="utf-8-sig")
+STwords = [word.rstrip() for word in f.readlines()]
+#mongo conn
+conn = get_mongo_conn(host=environ["MONGO_HOST"], port=int(environ["MONGO_PORT"]))
+db = conn["indexes"]
 
-    with open('./controller/static/index.pickle', 'rb') as handle:
-        inv_index = pickle.load(handle)
-    with open('./controller/static/terms_index.pickle', 'rb') as handle:
-        terms_index = pickle.load(handle)
-    with open('./controller/static/bm_avg.pickle', 'rb') as handle:
-        bm_avg = pickle.load(handle)
+with open('./controller/static/index_elias.pickle', 'rb') as handle:
+    inv_index = pickle.load(handle)
+with open('./controller/static/terms_index.pickle', 'rb') as handle:
+    terms_index = pickle.load(handle)
+# with open('./controller/static/bm_avg.pickle', 'rb') as handle:
+#     bm_avg = pickle.load(handle)
+bm_avg = sum(terms_index.values())/len(terms_index)
 
-    collection = db["collection"]
-    with open('./controller/static/collection_nolyrics.pickle', 'rb') as handle:
-        col_nolyrics = pickle.load(handle)
-    col_len = collection.count_documents({})
-    docs = set(range((col_len)))
+collection = db["collection"]
+with open('./controller/static/collection_nolyrics.pickle', 'rb') as handle:
+    col_nolyrics = pickle.load(handle)
+col_len = collection.count_documents({})
+docs = set(range(col_len))
 
 
 @flask_app.route("/")

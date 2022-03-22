@@ -20,7 +20,7 @@ def get_mongo_conn(host='127.0.0.1', port=27017):
 def get_word(inv_index, word, ps, STwords):
     if word in inv_index.keys():
         try:
-            return set(inv_index[word][1].keys())
+            return set(decode(inv_index[word][1]).keys())
         except IndexError:
             return set()
     elif word[0] == "\"" and word[-1] == "\"":
@@ -51,7 +51,7 @@ def get_word_ranked(inv_index, word, ps, STwords):
 def get_word_docs(inv_index, word):
     if word in inv_index.keys():
         try:
-            return inv_index[word][1]
+            return decode(inv_index[word][1])
         except IndexError:
             return {}
 
@@ -67,14 +67,14 @@ def handleQuotes(inv_index, quote, ps, STwords):
     for word in quoteParts:
         if results == None:
             try:
-                results = inv_index[word][1]
+                results = decode(inv_index[word][1])
             except IndexError:
                 return set()
         elif len(results) == 0:
             return set()
         else:
             try:
-                newResults = inv_index[word][1]
+                newResults = decode(inv_index[word][1])
             except IndexError:
                 return set()
 
@@ -214,7 +214,7 @@ def ranked_search(query, inv_index, col_len, ps, STwords, bm_index, bm_avg):
     for word in queries:
         query_index[word] = 1
         try:
-            docs = get_word_ranked(inv_index, word, ps=ps, STwords=STwords)[1].keys()
+            docs = decode(get_word_ranked(inv_index, word, ps=ps, STwords=STwords)[1]).keys()
             freq = get_word_ranked(inv_index, word, ps=ps, STwords=STwords)[0]
         except (IndexError, TypeError):
             docs = get_word_ranked(inv_index, word, ps=ps, STwords=STwords)
@@ -285,3 +285,43 @@ def get_video(dic):
     page = requests.get(f'https://www.youtube.com/results?search_query='+query)
     url = 'https://www.youtube.com/embed/' + re.search(r'"videoId":"(.+?)"', page.text).group(1)
     return {'Url':url}
+
+
+def decode(encoding):
+    decodedDict = {}
+    docID = 0
+    for item in encoding:
+        key = -1
+        values = []
+        # print(item)
+        for encodedPart in item:
+            binNum = str(bin(encodedPart))[2:]
+
+            while len(binNum) > 0:
+                # y1+z1 = original first number
+                try:
+                    first0 = binNum.index("0")
+
+                    y1 = binNum[:first0]
+                    y1 = 2 ** len(y1)
+                    z1 = binNum[first0:2 * first0 + 1]
+
+                    val = y1 + int(z1, 2) - 1
+                    if key == -1:
+                        key = val + docID
+                        docID = key
+                    else:
+                        values += [val]
+
+                    binNum = binNum[2 * first0 + 1:]
+
+                except ValueError:
+                    #                 because we +1 zero index, need to plus one again
+                    #                 no 0's - only 1
+                    if key == -1:
+                        key = 0
+                    else:
+                        values += [0]
+                    binNum = binNum[1:]
+        decodedDict[key] = values
+    return decodedDict

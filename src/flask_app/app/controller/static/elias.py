@@ -5,6 +5,7 @@ import math
 import pandas as pd
 from pymongo import MongoClient
 import pickle
+import argparse
 
 
 def get_mongo_conn(host='127.0.0.1', port=27017):
@@ -71,7 +72,6 @@ def create_invindex(file_csv):
     # Parse XML file and initialize data structures.
     inv_index = defaultdict(list)
     terms_index = {}
-    bm_avg = 0
 
     df = pd.read_csv(file_csv)
     df = df.dropna(subset=['Lyric'])
@@ -84,7 +84,6 @@ def create_invindex(file_csv):
         # Combine headline + text, tokenize it, remove the stopwords and stem each token.
         tks = re.findall(r'\w+', lyric)
         tks = [ps.stem(word) for word in tks if word.lower() not in STwords]
-        bm_avg += len(tks)
         # Iterate through each token and append to inverted index.
         for pos, word in enumerate(tks):
             # Check if the word is already on the inv_index
@@ -108,8 +107,6 @@ def create_invindex(file_csv):
             inv_index[word][0] = len(inv_index[word][1].keys())
 
         terms_index[idx] = len(tks)
-
-    bm_avg = bm_avg / len(inv_index)
 
     for kp in inv_index.items():
         # print("kp", kp)
@@ -136,5 +133,31 @@ def create_invindex(file_csv):
     with open('terms_index.pickle', 'wb') as handle:
         pickle.dump(terms_index, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open('bm_avg.pickle', 'wb') as handle:
-        pickle.dump(bm_avg, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+def upload_collection(collection, connection):
+    with open(collection, 'r') as f:
+        df = pd.read_csv(f)
+    db = connection["indexes"]
+    collec = db["collection"]
+    collec_nolyrics = {}
+    for i in range(len(df)):
+        print("*" * 5, i)
+        example = df.iloc[i][{'Lyric', 'Artist', 'SName', 'ID', 'Genres', 'Release', 'Thumbnail'}].to_dict()
+        collec.insert_one({x: (int(y) if x == "ID" else str(y)) for x, y in example.items()})
+
+        example_nol = df.iloc[i][{'Artist', 'SName', 'ID', 'Genres', 'Release', 'Thumbnail'}].to_dict()
+        collec_nolyrics[int(df.iloc[i]['ID'])] = example_nol
+
+    with open('collection_nolyrics.pickle', 'wb') as handle:
+        pickle.dump(collec_nolyrics, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--collection', type=str, required=True)
+    args = parser.parse_args()
+
+    connection = get_mongo_conn()
+    upload_collection(args.collection, connection=connection)
+
+    create_invindex(args.collection)
