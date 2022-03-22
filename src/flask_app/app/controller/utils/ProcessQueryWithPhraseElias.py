@@ -288,22 +288,27 @@ def get_video(dic):
 
 
 def decode(encoding):
+    dp = {}
     decodedDict = {}
     docID = 0
     for item in encoding:
         key = -1
         values = []
-        # print(item)
         for encodedPart in item:
             binNum = str(bin(encodedPart))[2:]
 
-            while len(binNum) > 0:
+            while binNum:
                 # y1+z1 = original first number
                 try:
                     first0 = binNum.index("0")
 
                     y1 = binNum[:first0]
-                    y1 = 2 ** len(y1)
+                    if first0 in dp:
+                        y1 = dp[first0]
+                    else:
+                        y1 = 2 ** first0
+                        dp[first0] = y1
+                    # y1 = 2** first0
                     z1 = binNum[first0:2 * first0 + 1]
 
                     val = y1 + int(z1, 2) - 1
