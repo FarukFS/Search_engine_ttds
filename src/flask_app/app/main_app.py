@@ -51,7 +51,7 @@ def front():
 @flask_app.route("/search", methods=["POST"])
 def search():
     payload = request.get_json(force=True)
-    global ps, conn, STwords, db, inv_index, col_nolyrics,  col_len, terms_index, bm_avg, docs
+    # global ps, conn, STwords, db, inv_index, col_nolyrics,  col_len, terms_index, bm_avg, docs
     type = payload["type"].lower() 
     query = payload["query"]
     # num_results = payload["num_results"]
@@ -78,7 +78,7 @@ def search():
 def lyrics():
     payload = request.get_json(force=True)
     logger.info("[INFO] Executing query")
-    global ps, conn, STwords, db, inv_index, collection, col_len
+    # global ps, conn, STwords, db, inv_index, collection, col_len
     try:
         response = get_lyrics(payload, collection)
         return make_response(response, 200)
