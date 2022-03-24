@@ -5,9 +5,9 @@ services:
     container_name: mongo_db
     image: mongo
     expose:
-      - "27017"
+      - "8949"
     ports:
-      - "27017:27017"
+      - "8949:8949"
     networks:
       text-flask:
         aliases:

@@ -8,7 +8,7 @@ import pickle
 import argparse
 
 
-def get_mongo_conn(host='127.0.0.1', port=27017):
+def get_mongo_conn(host='127.0.0.1', port=8949):
     # Create connection
     mongo_conn = MongoClient(host, port)
     return mongo_conn
