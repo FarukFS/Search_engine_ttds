@@ -1,1 +1,1 @@
-# Frontend created using React, backend using Python. Data collection stored in a MongoDB. API and database deployed using docker. Website deployed using Heroku (it is now down since the backend server is offline).
+Frontend created using React, backend using Python. Data collection stored in a MongoDB. API and database deployed using docker. Website deployed using Heroku (it is now down since the backend server is offline).
